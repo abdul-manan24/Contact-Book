@@ -41,20 +41,20 @@ def build_parser():
     show.set_defaults(func=repository.show_command)
 
 
-    # update = commands.add_parser('update', help='Update a contact.')
-    # update.add_argument('id', type=int)
-    # for field in ('name', 'phone', 'email', 'address', 'notes'):
-    #     update.add_argument(f'{--field}')
-    # update.set_defaults(func=repository.update_contact)
+    update = commands.add_parser('update', help='Update a contact.')
+    update.add_argument('id', type=int)
+    for field in ('name', 'phone', 'email', 'address', 'notes'):
+        update.add_argument(f'--{field}')
+    update.set_defaults(func=repository.update_contact)
 
 
-    # delete = commands.add_parser('delete', help='Delete a contact.')
-    # delete.add_argument('id', type=int)
-    # delete.add_argument(
-    #     '--yes', action='store true',
-    #     help='Skip deletion confirmation'
-    # )
-    # delete.set_defaults(func=repository.delete_contact)
+    delete = commands.add_parser('delete', help='Delete a contact.')
+    delete.add_argument('--id', type=int)
+    delete.add_argument(
+        '--yes', action='store_true',
+        help='Skip deletion confirmation'
+    )
+    delete.set_defaults(func=repository.delete_contact)
 
 
     count = commands.add_parser('count', help='Count contacts')

@@ -9,7 +9,7 @@ SCHEMA = '''
 
 CREATE TABLE IF NOT EXISTS contacts (
 
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name NOT NULL CHECK(length(trim(name)) > 0 ),
     phone TEXT,
     email TEXT,
