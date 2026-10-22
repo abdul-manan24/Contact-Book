@@ -51,14 +51,67 @@ def list_contacts(limit:int = 20):
         else:
             print('-' * 131, '\n')
 
-def search_contacts():
+def search_contacts(args):
     pass
 
-def show_command():
-    pass
+def show_command(args):
 
-def update_contact():
-    pass
+    with connect() as conn:
+
+        cursor = conn.execute(
+            ''' SELECT * FROM contacts
+                WHERE id = ?
+            ''',
+            (args.id,)
+        )
+
+        contact = dict(cursor.fetchone())
+        contact = {key:('None' if value is None else value) for key, value in contact.items()}
+
+        print('-' * 100)
+
+        for key, value in contact.items():
+            print(f'{key:<30} | {value:<70}')
+
+def update_contact(Contact):
+
+    with connect() as conn:
+
+        cursor = conn.cursor()
+
+        cursor.execute (
+            ''' SELECT * FROM contacts
+                WHERE id = ?
+            ''',
+            (Contact.id, )
+        )
+
+        existing_data = cursor.fetchone()
+
+        updated_contact = (
+            Contact.name if None else existing_data['name'],
+            Contact.phone if not None else existing_data['phone'],
+            Contact.email if None else existing_data['email'],
+            Contact.address if None else existing_data['address'],
+            Contact.notes if None else existing_data['notes'],
+            datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            Contact.id,
+        )
+
+        print(updated_contact)
+
+        print(Contact)
+
+        cursor = conn.execute(
+            '''
+                UPDATE contacts
+                SET name = ?, phone = ?, email = ?, address = ?, notes = ?, updated_at = ?
+                WHERE id = ?
+            ''',
+            updated_contact
+        )
+
+        conn.commit()
 
 def delete_contact(args):
 
@@ -77,5 +130,13 @@ def delete_contact(args):
 
         print(f'Contact with id -> {contact_id} deleted successfully!')
 
-def count_contacts():
-    pass
+def count_contacts(args):
+
+    with connect() as conn:
+        cursor = conn.execute(
+            ''' SELECT COUNT(*) FROM contacts'''
+        )
+
+        count = cursor.fetchone()
+
+        print(f'There are total {count[0]} contacts!')

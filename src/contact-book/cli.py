@@ -37,12 +37,12 @@ def build_parser():
 
 
     show = commands.add_parser('show', help='Shows a contact.')
-    show.add_argument('id', type=int)
+    show.add_argument('--id', type=int)
     show.set_defaults(func=repository.show_command)
 
 
     update = commands.add_parser('update', help='Update a contact.')
-    update.add_argument('id', type=int)
+    update.add_argument('--id', type=int)
     for field in ('name', 'phone', 'email', 'address', 'notes'):
         update.add_argument(f'--{field}')
     update.set_defaults(func=repository.update_contact)
@@ -66,6 +66,7 @@ def build_parser():
 def main():
     parser = build_parser()
     args = parser.parse_args()
+    print(args)
 
     args.func(args)
 

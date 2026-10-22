@@ -5,7 +5,8 @@ from pydantic import (
 )
 
 class Contact(BaseModel):
-    name: str
+    id: int | None
+    name: str | None
     phone: str
     email: EmailStr | None
     address: str | None
