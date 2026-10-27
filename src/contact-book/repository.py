@@ -3,13 +3,29 @@ from db import connect
 from models import Contact
 from datetime import datetime
 
-def add_contact(Contact) -> Contact:
-    with connect() as conn:
-        insert_query = '''
-          INSERT INTO contacts (name, phone, email, address, notes, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?)  
-         '''
+# def add_contact(Contact) -> Contact:
+#     with connect() as conn:
+#         insert_query = '''
+#           INSERT INTO contacts (name, phone, email, address, notes, created_at, updated_at)
+#           VALUES (?, ?, ?, ?, ?, ?, ?)  
+#          '''
 
+#         data = (
+#             Contact.name,
+#             Contact.phone,
+#             Contact.email,
+#             Contact.address,
+#             Contact.notes,
+#             datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+#             datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+#         )
+
+#         cursor = conn.execute(insert_query, data)
+
+#         print(f"Contact saved successfully assigned id {cursor.lastrowid}")
+
+def insert_contact(Contact: Contact) -> int:
+    with connect() as conn:
         data = (
             Contact.name,
             Contact.phone,
@@ -20,10 +36,64 @@ def add_contact(Contact) -> Contact:
             datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         )
 
-        cursor = conn.execute(insert_query, data)
+        cursor = conn.execute(
+            """ INSERT INTO contacts (
+            name,
+            phone,
+            email,
+            address,
+            notes,
+            created_at,
+            updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            data
+        )
 
-        print(f"Contact saved successfully assigned id {cursor.lastrowid}")
+        conn.commit()
+        return cursor.lastrowid
 
+def fetch_all_contacts():
+    with connect() as conn:
+        cursor = conn.execute(
+            '''SELECT * FROM contacts'''
+        )
+
+        all_records = cursor.fetchall()
+
+        return all_records
+
+def fetch_one_contact(id: int):
+    with connect() as conn:
+        cursor = conn.execute (
+            ''' SELECT * FROM contacts
+                WHERE id = ?
+            ''',
+            (id,)
+        )
+
+        return cursor.fetchone()
+
+def delete_contact(id: int):
+    with connect() as conn:
+        cursor = conn.execute(
+            ''' DELETE * FROM contacts
+                WHERE id = ?
+            ''',
+            (id,)
+        )
+
+        conn.commit()
+
+def update_contact(set_clause: str, data: tuple):
+    with connect() as conn:
+        cursor = conn.execute(
+            f''' UPDATE contacts SET {set_clause} WHERE id = ?''',
+            data
+        )
+
+        conn.commit()
 
 
 def list_contacts(limit:int = 20):
@@ -140,3 +210,5 @@ def count_contacts(args):
         count = cursor.fetchone()
 
         print(f'There are total {count[0]} contacts!')
+
+print(fetch_all_contacts())
