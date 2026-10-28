@@ -66,7 +66,6 @@ def build_parser():
 def main():
     parser = build_parser()
     args = parser.parse_args()
-    print(args)
 
     args.func(args)
 

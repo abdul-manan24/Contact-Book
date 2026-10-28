@@ -3,28 +3,7 @@ from db import connect
 from models import Contact
 from datetime import datetime
 
-# def add_contact(Contact) -> Contact:
-#     with connect() as conn:
-#         insert_query = '''
-#           INSERT INTO contacts (name, phone, email, address, notes, created_at, updated_at)
-#           VALUES (?, ?, ?, ?, ?, ?, ?)  
-#          '''
-
-#         data = (
-#             Contact.name,
-#             Contact.phone,
-#             Contact.email,
-#             Contact.address,
-#             Contact.notes,
-#             datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-#             datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-#         )
-
-#         cursor = conn.execute(insert_query, data)
-
-#         print(f"Contact saved successfully assigned id {cursor.lastrowid}")
-
-def insert_contact(Contact: Contact) -> int:
+def insert_record(Contact: Contact) -> int:
     with connect() as conn:
         data = (
             Contact.name,
@@ -54,7 +33,7 @@ def insert_contact(Contact: Contact) -> int:
         conn.commit()
         return cursor.lastrowid
 
-def fetch_all_contacts():
+def fetch_all_records():
     with connect() as conn:
         cursor = conn.execute(
             '''SELECT * FROM contacts'''
@@ -64,7 +43,7 @@ def fetch_all_contacts():
 
         return all_records
 
-def fetch_one_contact(id: int):
+def fetch_one_record(id: int):
     with connect() as conn:
         cursor = conn.execute (
             ''' SELECT * FROM contacts
@@ -75,10 +54,10 @@ def fetch_one_contact(id: int):
 
         return cursor.fetchone()
 
-def delete_contact(id: int):
+def delete_record(id: int):
     with connect() as conn:
         cursor = conn.execute(
-            ''' DELETE * FROM contacts
+            ''' DELETE FROM contacts
                 WHERE id = ?
             ''',
             (id,)
@@ -86,7 +65,7 @@ def delete_contact(id: int):
 
         conn.commit()
 
-def update_contact(set_clause: str, data: tuple):
+def update_record(set_clause: str, data: tuple):
     with connect() as conn:
         cursor = conn.execute(
             f''' UPDATE contacts SET {set_clause} WHERE id = ?''',
@@ -183,32 +162,30 @@ def update_contact(Contact):
 
         conn.commit()
 
-def delete_contact(args):
+# def delete_contact(args):
 
-    contact_id = args.id
+#     contact_id = args.id
 
-    with connect() as conn:
+#     with connect() as conn:
 
-        cursor = conn.execute(
-            ''' DELETE FROM contacts
-                WHERE id = ? 
-            ''',
-            (contact_id,)
-        )
+#         cursor = conn.execute(
+#             ''' DELETE FROM contacts
+#                 WHERE id = ? 
+#             ''',
+#             (contact_id,)
+#         )
 
-        conn.commit()
+#         conn.commit()
 
-        print(f'Contact with id -> {contact_id} deleted successfully!')
+#         print(f'Contact with id -> {contact_id} deleted successfully!')
 
-def count_contacts(args):
-
+def count_records(args):
+    
     with connect() as conn:
         cursor = conn.execute(
             ''' SELECT COUNT(*) FROM contacts'''
         )
 
-        count = cursor.fetchone()
+        count = cursor.fetchall()
 
-        print(f'There are total {count[0]} contacts!')
-
-print(fetch_all_contacts())
+        return count
