@@ -19,6 +19,10 @@ class ContactModel(BaseModel):
     @field_validator("name")
     @classmethod
     def validate_name(cls, name: str) -> str:
+
+        if name is None:
+            return name
+        
         is_valid = bool(name and all(char.isalpha() or char.isspace() for char in name))
         if not is_valid:
             raise ValueError("Name must only contain letters and spaces.")
@@ -28,11 +32,11 @@ class ContactModel(BaseModel):
     @classmethod
     def validate_phone(cls, phone: str) -> str:
 
-        phone = phone.strip()
-
         if phone is None:
             return phone
-        
+
+        phone = phone.strip()
+           
         is_valid = bool(phone and all(char.isnumeric() or char in ('-',' ', '+') for char in phone))
 
         if not is_valid:

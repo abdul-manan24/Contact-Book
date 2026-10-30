@@ -2,6 +2,7 @@
 from pydantic import ValidationError
 import repository
 from validators import ContactModel
+from datetime import datetime
 
 def add_contact(Contact:ContactModel):
     try:
@@ -23,8 +24,20 @@ def list_contacts(Contact):
     records = repository.fetch_all_records()
 
     if records:
+        
+        print('-' * 113)
+        print('-' * 113)
+
+        print(f"|| {'ID':<5} || {'NAME':30} || {'PHONE':<30} || {'EMAIL':<30} ||")
+        print('-' * 113)
+
         for record in records:
-            print_contact(record)
+            record = dict(record)
+            record = {key:(f'None' if val is None else val) for key, val in record.items()}
+            print(f'|| {record['id']:<5} || {record['name']:<30} || {record['phone']:<30} || {record['email']:<30} ||')
+
+        print('-' * 113)
+        print('-' * 113)
     else:
         print(f"There are no contacts saved.")
 
@@ -54,13 +67,14 @@ def update_contact(Contact):
         set_clause = {key:value for key, value in Contact.items() if value is not None and key not in ('id', 'func', 'command')}
         
 
-        data = [value for value in set_clause.values()]
-        data.append(Contact['id'])
+        data = (datetime.now().strftime('%Y-%m-%d %H:%M:%S'),*[value for value in set_clause.values()],Contact['id'])
+
+        # data.append(Contact['id'])
         data = tuple(data)
         print(data)
 
         set_clause = [f'{key} = ?,' for key in set_clause.keys()]
-        set_clause_str = ''
+        set_clause_str = 'updated_at = ?, '
 
         for value in set_clause:
             set_clause_str += value
@@ -111,17 +125,19 @@ def print_contact(Contact):
 
     contact = dict(Contact)
 
-    print('-' * 70)
-    print(f'{'DETAILS':>38}')
-    print('-' * 70)
+    print('-' * 100)
+    print('-' * 100)
 
     contact = {key:(f'None' if val is None else val) for key, val in contact.items()}
 
-    print(f'{'ID':^35} | {contact['id']:^35}')
-    print(f'{'NAME':^35} | {contact['name']:^35}')
-    print(f'{'PHONE':^35} | {contact['phone']:^35}')
-    print(f'{'EMAIL':^35} | {contact['email']:^35}')
-    print(f'{'ADDRESS':^35} | {contact['address']:^35}')
-    print(f'{'NOTES':^35} | {contact['notes']:^35}')
-    print(f'{'CREATED_AT':^35} | {contact['created_at']:^35}')
-    print(f'{'UPDATED_AT':^35} | {contact['updated_at']:^35}')
+    print(f'|| {'ID':<11} || {contact['id']:<79} ||')
+    print(f'|| {'NAME':<11} || {contact['name']:<79} ||')
+    print(f'|| {'PHONE':<11} || {contact['phone']:<79} ||')
+    print(f'|| {'EMAIL':<11} || {contact['email']:<79} ||')
+    print(f'|| {'ADDRESS':<11} || {contact['address']:<79} ||')
+    print(f'|| {'NOTES':<11} || {contact['notes']:<79} ||')
+    print(f'|| {'CREATED_AT':<11} || {contact['created_at']:<79} ||')
+    print(f'|| {'UPDATED_AT':<11} || {contact['updated_at']:<79} ||')
+
+    print('-' * 100)
+    print('-' * 100)
