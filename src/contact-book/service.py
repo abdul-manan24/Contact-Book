@@ -1,45 +1,116 @@
 # Implementation of code logic.
+from pydantic import ValidationError
 import repository
+from validators import ContactModel
 
-def add_contact(Contact):
+def add_contact(Contact:ContactModel):
+    try:
+
+        Contact = ContactModel(**vars(Contact))
+
+        contact_id = repository.insert_record(Contact)
+        print(f"Contact inserted successfully! assigned id {contact_id}")
+        
+    except ValidationError as e:
+        errors_list = e.errors()
+
+        for error in errors_list:
+            print(f"'{error['input']}' is not valid input! {error['msg']}.")
+
+
+def list_contacts(Contact):
     
-    contact_id = repository.insert_record(Contact)
-    print(f"Contact inserted successfully! assigned id {contact_id}")
+    records = repository.fetch_all_records()
 
-def list_contacts():
-    pass
+    if records:
+        for record in records:
+            print_contact(record)
+    else:
+        print(f"There are no contacts saved.")
 
-def search_contacts():
-    pass
+
+def search_contacts(Contact):
+    records = repository.fetch_all_records()
+
+    result = []
+
+    for record in records:
+        if Contact.query in record['name'] or Contact.query in record['phone']:
+            result.append(record)
+
+    if result:
+        for contact in result:
+            print_contact(contact)
+    else:
+        print("No results found!")
+
 
 def update_contact(Contact):
-    Contact = vars(Contact)
-    set_clause = {key:value for key, value in Contact.items() if value is not None and key not in ('id', 'func', 'command')}
-    
 
-    data = [value for value in set_clause.values()]
-    data.append(Contact['id'])
-    data = tuple(data)
-    print(data)
+    try:
+        Contact = ContactModel(**vars(Contact))
+        Contact = vars(Contact)
 
-    set_clause = [f'{key} = ?,' for key in set_clause.keys()]
-    set_clause_str = ''
+        set_clause = {key:value for key, value in Contact.items() if value is not None and key not in ('id', 'func', 'command')}
+        
 
-    for value in set_clause:
-        set_clause_str += value
+        data = [value for value in set_clause.values()]
+        data.append(Contact['id'])
+        data = tuple(data)
+        print(data)
 
-    set_clause_str = set_clause_str.strip(',')
-    print(set_clause_str)
+        set_clause = [f'{key} = ?,' for key in set_clause.keys()]
+        set_clause_str = ''
 
-    repository.update_record(set_clause_str, data)
+        for value in set_clause:
+            set_clause_str += value
 
-    print(f"Contact with id {Contact['id']} updated successfully!")
+        set_clause_str = set_clause_str.strip(',')
+        print(set_clause_str)
+
+        update_successful = repository.update_record(set_clause_str, data)
+
+        if update_successful:
+            print(f"Contact with id {Contact['id']} updated successfully!")
+
+
+    except ValidationError as e:
+        errors_list = e.errors()
+
+        for error in errors_list:
+            print(f"'{error['input']}' is not valid input! {error['msg']}.")
+
 
 def show_command(Contact):
 
-    contact = dict(repository.fetch_one_record(Contact.id))
+    contact = repository.fetch_one_record(Contact.id)
+    if contact:
+        print_contact(contact)
+    else:
+        print(f"There is no any contact with id {Contact.id}.")
 
-    print(type(contact))
+
+def delete_contact(Contact):
+
+    deleted_successfully = repository.delete_record(Contact.id)
+
+    if deleted_successfully:
+        print(f"Contact with {Contact.id} deleted successfully!")
+    else:
+        print(f"There is no any contact with id {Contact.id}.")
+
+
+def count_contacts(Contact):
+
+    count = repository.count_records(args)[0][0]
+
+    print(f"There are total {count} contacts!")
+
+
+def print_contact(Contact):
+
+    contact = dict(Contact)
+
     print('-' * 70)
     print(f'{'DETAILS':>38}')
     print('-' * 70)
@@ -54,16 +125,3 @@ def show_command(Contact):
     print(f'{'NOTES':^35} | {contact['notes']:^35}')
     print(f'{'CREATED_AT':^35} | {contact['created_at']:^35}')
     print(f'{'UPDATED_AT':^35} | {contact['updated_at']:^35}')
-
-
-
-
-def delete_contact(Contact):
-    repository.delete_record(Contact.id)
-    print(f"Contact with {Contact.id} deleted successfully!")
-
-def count_contacts(args):
-
-    count = repository.count_records(args)[0][0]
-
-    print(f"There are total {count} contacts!")

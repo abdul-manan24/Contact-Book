@@ -37,5 +37,4 @@ def connect():
 
     return conn
 
-
 connect()

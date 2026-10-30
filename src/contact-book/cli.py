@@ -31,7 +31,7 @@ def build_parser():
 
 
     search = commands.add_parser('search', help='Searches contacts.')
-    search.add_argument('query')
+    search.add_argument('--query')
     search.add_argument('--limit', type=int, default=50)
     search.set_defaults(func=service.search_contacts)
 

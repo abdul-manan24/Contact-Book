@@ -3,43 +3,39 @@ from pydantic import (
     BaseModel,
     EmailStr,
     field_validator,
-
+    Field
 )
 
 
 class ContactModel(BaseModel):
-    id: int | None
-    name: str | None
-    phone: str
-    email: EmailStr
-    address: str | None
-    notes: str | None
-    created_at: str
-    updated_at: str
+    
+    id: int | None = None
+    name: str | None = Field(min_length=3, max_length=50)
+    phone: str | None = Field(min_length=10, max_length=15)
+    email: EmailStr | None
+    address: str | None = Field(min_length=5, max_length=100)
+    notes: str | None = Field(min_length=5, max_length=100)
 
     @field_validator("name")
     @classmethod
-    def validate_name():
-        pass
-
+    def validate_name(cls, name: str) -> str:
+        is_valid = bool(name and all(char.isalpha() or char.isspace() for char in name))
+        if not is_valid:
+            raise ValueError("Name must only contain letters and spaces.")
+        return name
 
     @field_validator("phone")
     @classmethod
-    def validate_phone():
-        pass
-    
-    @field_validator("email")
-    @classmethod
-    def validate_email():
-        pass
-    
-    @field_validator("address")
-    @classmethod
-    def validate_address():
-        pass
+    def validate_phone(cls, phone: str) -> str:
 
-    @field_validator("notes")
-    @classmethod
-    def validate_notes():
-        pass
-    
+        phone = phone.strip()
+
+        if phone is None:
+            return phone
+        
+        is_valid = bool(phone and all(char.isnumeric() or char in ('-',' ', '+') for char in phone))
+
+        if not is_valid:
+            raise ValueError("Phone must only contain numbers.")
+        
+        return phone
