@@ -83,7 +83,7 @@ def update_record(set_clause: str, data: tuple):
 
             conn.commit()
 
-        return True
+        return cursor.rowcount
     
     except sqlite3.IntegrityError as e:
         print("Error occurred", e)

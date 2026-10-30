@@ -3,6 +3,7 @@ from pydantic import ValidationError
 import repository
 from validators import ContactModel
 from datetime import datetime
+from errors import RecordNotFoundError
 
 def add_contact(Contact:ContactModel):
     try:
@@ -20,11 +21,13 @@ def add_contact(Contact:ContactModel):
 
 
 def list_contacts(Contact):
-    
-    records = repository.fetch_all_records()
 
-    if records:
-        
+    try:
+        records = repository.fetch_all_records()
+
+        if not records:
+            raise RecordNotFoundError(f'There are no contacts saved.')
+
         print('-' * 113)
         print('-' * 113)
 
@@ -38,25 +41,36 @@ def list_contacts(Contact):
 
         print('-' * 113)
         print('-' * 113)
-    else:
-        print(f"There are no contacts saved.")
+
+    except RecordNotFoundError as e:
+
+        print(e)
 
 
 def search_contacts(Contact):
-    records = repository.fetch_all_records()
 
-    result = []
+    try:
+        records = repository.fetch_all_records()
 
-    for record in records:
-        if Contact.query in record['name'] or Contact.query in record['phone']:
-            result.append(record)
+        if not records:
+            raise RecordNotFoundError(f'There are no contacts saved.')
 
-    if result:
+        result = []
+
+        for record in records:
+            if Contact.query in record['name'] or Contact.query in record['phone']:
+                result.append(record)
+
+        if not result:
+            raise RecordNotFoundError(f"No results found for query '{Contact.query}'.")
+
         for contact in result:
             print_contact(contact)
-    else:
-        print("No results found!")
 
+    except RecordNotFoundError as e:
+
+        print(e)
+    
 
 def update_contact(Contact):
 
@@ -69,10 +83,6 @@ def update_contact(Contact):
 
         data = (datetime.now().strftime('%Y-%m-%d %H:%M:%S'),*[value for value in set_clause.values()],Contact['id'])
 
-        # data.append(Contact['id'])
-        data = tuple(data)
-        print(data)
-
         set_clause = [f'{key} = ?,' for key in set_clause.keys()]
         set_clause_str = 'updated_at = ?, '
 
@@ -80,46 +90,69 @@ def update_contact(Contact):
             set_clause_str += value
 
         set_clause_str = set_clause_str.strip(',')
-        print(set_clause_str)
 
         update_successful = repository.update_record(set_clause_str, data)
 
-        if update_successful:
-            print(f"Contact with id {Contact['id']} updated successfully!")
-
-
+        if not update_successful:
+            raise RecordNotFoundError(f'Contact with id {Contact['id']} does not exist.')
+        
+        print(f"Contact with id {Contact['id']} updated successfully!")
+        
     except ValidationError as e:
         errors_list = e.errors()
 
         for error in errors_list:
             print(f"'{error['input']}' is not valid input! {error['msg']}.")
 
+    except RecordNotFoundError as e:
+
+        print(e)
+
 
 def show_command(Contact):
 
-    contact = repository.fetch_one_record(Contact.id)
-    if contact:
-        print_contact(contact)
-    else:
-        print(f"There is no any contact with id {Contact.id}.")
+    try:
 
+        contact = repository.fetch_one_record(Contact.id)
+
+        if not contact:
+            raise RecordNotFoundError(f'Contact with id {Contact.id} does not exist.')
+
+        print_contact(contact)
+        
+    except RecordNotFoundError as e:
+
+        print(e)
 
 def delete_contact(Contact):
 
-    deleted_successfully = repository.delete_record(Contact.id)
+    try:
 
-    if deleted_successfully:
+        deleted_successfully = repository.delete_record(Contact.id)
+
+        if not deleted_successfully:
+            raise RecordNotFoundError(f'Contact with id {Contact.id} does not exist.')\
+            
         print(f"Contact with {Contact.id} deleted successfully!")
-    else:
-        print(f"There is no any contact with id {Contact.id}.")
+
+    except RecordNotFoundError as e:
+
+        print(e)
 
 
 def count_contacts(Contact):
+    try:
 
-    count = repository.count_records(args)[0][0]
+        count = repository.count_records(Contact)[0][0]
 
-    print(f"There are total {count} contacts!")
+        if not count:
+            raise RecordNotFoundError(f'There are no contacts saved.')
 
+        print(f"There are total {count} contacts!")
+
+    except RecordNotFoundError as e:
+        
+        print(e)
 
 def print_contact(Contact):
 
