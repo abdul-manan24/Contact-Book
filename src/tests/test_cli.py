@@ -1,9 +1,14 @@
 import sys
 import pytest
 from unittest.mock import MagicMock, patch
+from pathlib import Path
+
+src_path = Path(__file__).resolve().parent.parent
+sys.path.append(str(src_path))
 
 # Assuming your original code is in a file named cli.py
 from contact_book.cli import build_parser, service
+# from contact_book import service
 
 
 @pytest.fixture

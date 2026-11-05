@@ -1,5 +1,9 @@
 import argparse
 import service
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent))
 
 def build_parser():
 
