@@ -1,14 +1,14 @@
 # Implementation of code logic.
 from pydantic import ValidationError
-import repository
-from validators import ContactModel
+from . import repository
+from .validators import ContactModel, CreateContactModel
 from datetime import datetime
-from errors import RecordNotFoundError
+from .errors import RecordNotFoundError
 
-def add_contact(Contact:ContactModel):
+def add_contact(Contact):
     try:
 
-        Contact = ContactModel(**vars(Contact))
+        Contact = CreateContactModel(**vars(Contact))
 
         contact_id = repository.insert_record(Contact)
         print(f"Contact inserted successfully! assigned id {contact_id}")
@@ -23,10 +23,19 @@ def add_contact(Contact:ContactModel):
 def list_contacts(Contact):
 
     try:
-        records = repository.fetch_all_records()
+        records = repository.fetch_all_records(
+            limit=Contact.limit,
+            offset=Contact.offset,
+        )
 
         if not records:
-            raise RecordNotFoundError(f'There are no contacts saved.')
+            count = repository.count_records(Contact)[0][0]
+            message = (
+                'There are no contacts saved.'
+                if count == 0
+                else 'There are no contacts on this page.'
+            )
+            raise RecordNotFoundError(message)
 
         print('-' * 113)
         print('-' * 113)
@@ -50,6 +59,10 @@ def list_contacts(Contact):
 def search_contacts(Contact):
 
     try:
+        query = Contact.query.strip() if Contact.query else ""
+        if not query:
+            raise RecordNotFoundError("A non-empty search query is required.")
+
         records = repository.fetch_all_records()
 
         if not records:
@@ -58,13 +71,13 @@ def search_contacts(Contact):
         result = []
 
         for record in records:
-            if Contact.query in record['name'] or Contact.query in record['phone']:
+            if query in (record['name'] or '') or query in (record['phone'] or ''):
                 result.append(record)
 
         if not result:
             raise RecordNotFoundError(f"No results found for query '{Contact.query}'.")
 
-        for contact in result:
+        for contact in result[:getattr(Contact, 'limit', 50)]:
             print_contact(contact)
 
     except RecordNotFoundError as e:

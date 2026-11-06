@@ -1,9 +1,20 @@
 import argparse
-import service
-import sys
-from pathlib import Path
+from contact_book import service
 
-sys.path.append(str(Path(__file__).resolve().parent))
+
+def positive_int(value):
+    number = int(value)
+    if number < 1:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return number
+
+
+def non_negative_int(value):
+    number = int(value)
+    if number < 0:
+        raise argparse.ArgumentTypeError("must be a non-negative integer")
+    return number
+
 
 def build_parser():
 
@@ -29,14 +40,14 @@ def build_parser():
 
 
     listing = commands.add_parser('list', help='List contacts.')
-    listing.add_argument('--limit', type=int, default=20)
-    listing.add_argument('--offset', type=int, default=0)
+    listing.add_argument('--limit', type=positive_int, default=20)
+    listing.add_argument('--offset', type=non_negative_int, default=0)
     listing.set_defaults(func=service.list_contacts)
 
 
     search = commands.add_parser('search', help='Searches contacts.')
-    search.add_argument('--query')
-    search.add_argument('--limit', type=int, default=50)
+    search.add_argument('--query', required=True)
+    search.add_argument('--limit', type=positive_int, default=50)
     search.set_defaults(func=service.search_contacts)
 
 
@@ -73,4 +84,5 @@ def main():
 
     args.func(args)
 
-main()
+if __name__ == "__main__":
+    main()

@@ -36,5 +36,3 @@ def connect():
     conn.executescript(SCHEMA)
 
     return conn
-
-connect()

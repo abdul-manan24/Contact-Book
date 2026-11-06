@@ -5,7 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "contact_book"
 version = "0.1.0"
-dependencies = []
+dependencies = ["pydantic[email]>=2,<3"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

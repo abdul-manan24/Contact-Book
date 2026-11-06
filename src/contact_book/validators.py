@@ -10,11 +10,11 @@ from pydantic import (
 class ContactModel(BaseModel):
     
     id: int | None = None
-    name: str | None = Field(min_length=3, max_length=50)
-    phone: str | None = Field(min_length=10, max_length=15)
-    email: EmailStr | None
-    address: str | None = Field(min_length=5, max_length=100)
-    notes: str | None = Field(min_length=5, max_length=100)
+    name: str | None = Field(default=None, min_length=3, max_length=50)
+    phone: str | None = Field(default=None, min_length=10, max_length=15)
+    email: EmailStr | None = None
+    address: str | None = Field(default=None, min_length=5, max_length=100)
+    notes: str | None = Field(default=None, min_length=5, max_length=100)
 
     @field_validator("name")
     @classmethod
@@ -22,7 +22,11 @@ class ContactModel(BaseModel):
 
         if name is None:
             return name
-        
+
+        name = name.strip()
+        if not name:
+            raise ValueError("Name must not be blank.")
+
         is_valid = bool(name and all(char.isalpha() or char.isspace() for char in name))
         if not is_valid:
             raise ValueError("Name must only contain letters and spaces.")
@@ -43,3 +47,7 @@ class ContactModel(BaseModel):
             raise ValueError("Phone must only contain numbers.")
         
         return phone
+
+
+class CreateContactModel(ContactModel):
+    name: str = Field(min_length=3, max_length=50)

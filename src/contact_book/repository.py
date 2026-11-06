@@ -1,7 +1,7 @@
 # It contains raw SQL queries.
 import sqlite3
-from db import connect
-from models import Contact
+from contact_book.db import connect
+from contact_book.models import Contact
 from datetime import datetime
 
 def insert_record(Contact: Contact) -> int:
@@ -35,11 +35,25 @@ def insert_record(Contact: Contact) -> int:
         return cursor.lastrowid
 
 
-def fetch_all_records():
+def fetch_all_records(limit: int | None = None, offset: int = 0):
+    if limit is not None and limit < 0:
+        raise ValueError("limit must be non-negative.")
+    if offset < 0:
+        raise ValueError("offset must be non-negative.")
+
     with connect() as conn:
-        cursor = conn.execute(
-            '''SELECT * FROM contacts'''
-        )
+        if limit is None and offset == 0:
+            cursor = conn.execute("SELECT * FROM contacts ORDER BY id")
+        elif limit is None:
+            cursor = conn.execute(
+                "SELECT * FROM contacts ORDER BY id LIMIT -1 OFFSET ?",
+                (offset,),
+            )
+        else:
+            cursor = conn.execute(
+                "SELECT * FROM contacts ORDER BY id LIMIT ? OFFSET ?",
+                (limit, offset),
+            )
 
         all_records = cursor.fetchall()
 
